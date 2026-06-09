@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Financeiro MetroCasa</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1f2937;
+            --primary-light: #374151;
+            --accent: #3b82f6;
+            --accent-dark: #1e40af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #e5e7eb;
+            --bg-light: #f9fafb;
+            --bg-white: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-light: #9ca3af;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* HEADER */
+        .header {
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .header-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-dark);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            border-color: var(--primary-light);
+        }
+
+        .last-update {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* FILTERS */
+        .filters-section {
+            background: var(--bg-white);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .filters-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .filter-input,
+        .filter-select {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            background: var(--bg-white);
+            color: var(--text-primary);
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .date-inputs {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .date-inputs input {
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .date-separator {
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* STATUS BANNERS */
+        .status-banner {
+            max-width: 1400px;
+            margin: 1rem auto 0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .status-banner.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid var(--success);
+            display: block;
+        }
+
+        .status-banner.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid var(--warning);
+            display: block;
+        }
+
+        .status-banner.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--danger);
+            display: block;
+        }
+
+        /* MAIN CONTAINER */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* KPI CARDS */
+        .kpi-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s;
+        }
+
+        .kpi-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .kpi-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-detail {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .kpi-card.accent .kpi-label {
+            color: var(--accent);
+        }
+
+        .kpi-card.success .kpi-label {
+            color: var(--success);
+        }
+
+        .kpi-card.warning .kpi-label {
+            color: var(--warning);
+        }
+
+        /* CHARTS SECTION */
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* INSIGHTS SECTION */
+        .insights-section {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+
+        .insights-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .insights-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .insight-item {
+            padding: 1rem;
+            background: var(--bg-light);
+            border-left: 4px solid var(--accent);
+            border-radius: 0.5rem;
+        }
+
+        .insight-item.success {
+            border-left-color: var(--success);
+        }
+
+        .insight-item.warning {
+            border-left-color: var(--warning);
+        }
+
+        .insight-item.danger {
+            border-left-color: var(--danger);
+        }
+
+        .insight-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filters-container {
+                grid-template-columns: 1fr;
+            }
+
+            .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .header-actions,
+            .filters-section,
+            .status-banner {
+                display: none;
+            }
+
+            .container {
+                margin: 0;
+                padding: 0;
+            }
+
+            .chart-card,
+            .kpi-card,
+            .insights-section {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid var(--border);
+            }
+
+            .kpi-section {
+                margin-bottom: 1.5rem;
+            }
+
+            .charts-section {
+                gap: 1rem;
+            }
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-top">
+                <h1 class="header-title">📊 Relatório Financeiro MetroCasa</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="loadData()">
+                        🔄 Atualizar dados
+                    </button>
+                    <button class="btn btn-primary" onclick="exportPDF()">
+                        📥 Exportar PDF
+                    </button>
+                </div>
+            </div>
+            <div class="last-update">
+                Última atualização: <span id="lastUpdate">--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATUS BANNER -->
+    <div class="header-content" style="max-width: 1400px; margin: 0 auto;">
+        <div id="statusBanner" class="status-banner"></div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filters-section">
+        <div class="filters-container">
+            <div class="filter-group">
+                <label class="filter-label">Período</label>
+                <div class="date-inputs">
+                    <input type="date" id="filterDateStart" class="filter-input" onchange="applyFilters()">
+                    <span class="date-separator">até</span>
+                    <input type="date" id="filterDateEnd" class="filter-input" onchange="applyFilters()">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Departamento</label>
+                <select id="filterDepartamento" class="filter-select" multiple onchange="applyFilters()">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Obra</label>
+                <select id="filterObra" class="filter-select" multiple onchange="applyFilters()">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+        <!-- KPI CARDS -->
+        <div class="kpi-section">
+            <div class="kpi-card">
+                <div class="kpi-label">💰 Gasto Total</div>
+                <div class="kpi-value" id="kpiGastoTotal">R$ 0,00</div>
+                <div class="kpi-detail">Soma de todos os pagamentos</div>
+            </div>
+
+            <div class="kpi-card accent">
+                <div class="kpi-label">📅 Gasto do Mês</div>
+                <div class="kpi-value" id="kpiGastoMes">R$ 0,00</div>
+                <div class="kpi-detail" id="kpiGastoMesDetail">Mês atual</div>
+            </div>
+
+            <div class="kpi-card success">
+                <div class="kpi-label">⏱️ Prazo Médio</div>
+                <div class="kpi-value" id="kpiPrazoMedio">-- dias</div>
+                <div class="kpi-detail">Emissão até pagamento</div>
+            </div>
+
+            <div class="kpi-card warning">
+                <div class="kpi-label">📦 Total Pedidos</div>
+                <div class="kpi-value" id="kpiTotalPedidos">0</div>
+                <div class="kpi-detail">Quantidade de transações</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">🏢 Fornecedores</div>
+                <div class="kpi-value" id="kpiFornecedores">0</div>
+                <div class="kpi-detail">Fornecedores únicos</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">🎯 Ticket Médio</div>
+                <div class="kpi-value" id="kpiTicketMedio">R$ 0,00</div>
+                <div class="kpi-detail">Valor médio por pedido</div>
+            </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3 class="chart-title">Gasto por Departamento</h3>
+                <div class="chart-container">
+                    <canvas id="chartDepartamento"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3 class="chart-title">Top 5 Fornecedores</h3>
+                <div class="chart-container">
+                    <canvas id="chartFornecedor"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card" style="grid-column: 1 / -1;">
+                <h3 class="chart-title">Série Temporal de Gasto</h3>
+                <div class="chart-container" style="height: 350px;">
+                    <canvas id="chartTemporal"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- INSIGHTS -->
+        <div class="insights-section">
+            <h2 class="insights-title">💡 Insights & Análise</h2>
+            <div class="insights-content" id="insightsContent">
+                <div class="insight-item">
+                    <div class="insight-label">Carregando...</div>
+                    <div class="insight-text">Aguarde a análise dos dados.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ CONFIGURAÇÃO INICIAL ============
+        // 🔴 EDITE AQUI O LINK DO CSV DO GOOGLE SHEETS 🔴
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQGheXKrDzBqpQX9A82vS_QLZA6dlnhyTTjphmU5OzM5GxklV3VI1wLtd3zVhLV_Q/pub?gid=1273380316&single=true&output=csv';
+        // ================================================
+
+        let rawData = [];
+        let filteredData = [];
+        let charts = {};
+
+        // ============ INICIALIZAÇÃO ============
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+        });
+
+        // ============ CARREGAMENTO DE DADOS ============
+        async function loadData() {
+            try {
+                // Remover &output=csv e adicionar &output=gviz para evitar CORS
+                // Alternativa: usar a URL diretamente com JSONP
+                const csvUrlAlternativo = CSV_URL.replace('&output=csv', '').replace('output=csv', 'output=gviz');
+                
+                // Tentar método 1: fetch direto (funciona em alguns casos)
+                let csvText = '';
+                let sucesso = false;
+
+                try {
+                    const response = await fetch(CSV_URL + '?t=' + Date.now(), {
+                        mode: 'no-cors'
+                    });
+                    if (response.ok) {
+                        csvText = await response.text();
+                        sucesso = true;
+                    }
+                } catch (e) {
+                    // Continua para método 2
+                }
+
+                // Método 2: usar um proxy CORS público confiável
+                if (!sucesso) {
+                    try {
+                        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                        const encodedUrl = encodeURIComponent(CSV_URL);
+                        const response = await fetch(proxyUrl + encodedUrl);
+                        if (response.ok) {
+                            csvText = await response.text();
+                            sucesso = true;
+                        }
+                    } catch (e) {
+                        // Continua
+                    }
+                }
+
+                // Método 3: alternativa se tudo falhar
+                if (!sucesso) {
+                    showStatus('error', `❌ Não foi possível carregar o CSV do Google Sheets. 
+                    <br><strong>Soluções:</strong>
+                    <br>1. Exporte o CSV manualmente e use GitHub Pages
+                    <br>2. Coloque o CSV num servidor seu
+                    <br>3. Atualize a página e tente novamente
+                    <br><br><strong>Para usar GitHub:</strong> Crie um repo público, suba o CSV lá, e atualize CSV_URL para: https://raw.githubusercontent.com/seu-usuario/seu-repo/main/dados.csv`);
+                    return;
+                }
+
+                // Detectar separador (vírgula ou ponto-e-vírgula)
+                const separator = detectSeparator(csvText);
+
+                // Parsear CSV
+                rawData = parseCSV(csvText, separator);
+
+                // Normalizar cabeçalhos
+                if (rawData.length > 0) {
+                    normalizeHeaders(rawData[0]);
+                }
+
+                // Validar dados
+                const validation = validateData(rawData);
+
+                if (!validation.isValid) {
+                    showStatus('error', `❌ Erro: ${validation.message}`);
+                    return;
+                }
+
+                if (validation.discardedCount > 0) {
+                    showStatus('warning', `⚠️ ${validation.discardedCount} linha(s) descartada(s): ${validation.reasons.join('; ')}`);
+                }
+
+                // Processar dados válidos
+                rawData = rawData.filter(row => {
+                    return row['Valor Pago'] && row['Dt. Emissão'] && row['Dt. Pagamento'];
+                });
+
+                if (rawData.length === 0) {
+                    showStatus('error', '❌ Nenhum dado válido encontrado no CSV');
+                    return;
+                }
+
+                showStatus('success', '✅ Dados carregados com sucesso!');
+                updateLastUpdate();
+                populateFilters();
+                applyFilters();
+
+            } catch (error) {
+                showStatus('error', `❌ Erro ao carregar dados: ${error.message}`);
+                console.error('Erro completo:', error);
+            }
+        }
+
+        // ============ FUNÇÕES AUXILIARES DE PARSING ============
+        function detectSeparator(csvText) {
+            const lines = csvText.split('\n').slice(0, 3);
+            const commaCount = (lines[0].match(/,/g) || []).length;
+            const semicolonCount = (lines[0].match(/;/g) || []).length;
+            return semicolonCount > commaCount ? ';' : ',';
+        }
+
+        function parseCSV(csvText, separator) {
+            const lines = csvText.trim().split('\n');
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].split(separator).map(h => h.trim());
+            const data = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+
+                const values = lines[i].split(separator).map(v => v.trim());
+                const row = {};
+
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+
+                data.push(row);
+            }
+
+            return data;
+        }
+
+        function normalizeHeaders(row) {
+            const mapping = {
+                'cód. obra': 'Cód. Obra',
+                'cod. obra': 'Cód. Obra',
+                'usuário': 'Usuário',
+                'usuario': 'Usuário',
+                'valor pago': 'Valor Pago',
+                'fornecedor': 'Fornecedor',
+                'categoria': 'Categoria',
+                'dt. emissão': 'Dt. Emissão',
+                'dt. emissao': 'Dt. Emissão',
+                'dt. pagamento': 'Dt. Pagamento',
+                'obra': 'Obra',
+                'departamento': 'Departamento'
+            };
+
+            const newRow = {};
+            for (const key in row) {
+                const normalizedKey = key.toLowerCase();
+                const mappedKey = mapping[normalizedKey] || key;
+                newRow[mappedKey] = row[key];
+            }
+
+            Object.keys(row).forEach(key => delete row[key]);
+            Object.assign(row, newRow);
+        }
+
+        function validateData(data) {
+            const requiredColumns = ['Valor Pago', 'Dt. Emissão', 'Dt. Pagamento', 'Departamento', 'Obra', 'Fornecedor'];
+            const firstRow = data[0] || {};
+
+            for (const col of requiredColumns) {
+                if (!(col in firstRow)) {
+                    return {
+                        isValid: false,
+                        message: `Coluna obrigatória ausente: "${col}"`
+                    };
+                }
+            }
+
+            let discardedCount = 0;
+            const reasons = new Set();
+
+            rawData = rawData.filter(row => {
+                // Verificar valores numéricos
+                const valor = parseFloat(row['Valor Pago']?.toString().replace(',', '.'));
+                if (isNaN(valor) || valor <= 0) {
+                    discardedCount++;
+                    reasons.add('Valor Pago inválido');
+                    return false;
+                }
+
+                // Verificar datas
+                const dataEmissao = parseDate(row['Dt. Emissão']);
+                const dataPagamento = parseDate(row['Dt. Pagamento']);
+
+                if (!dataEmissao) {
+                    discardedCount++;
+                    reasons.add('Dt. Emissão inválida');
+                    return false;
+                }
+                if (!dataPagamento) {
+                    discardedCount++;
+                    reasons.add('Dt. Pagamento inválida');
+                    return false;
+                }
+
+                row.valorNumerico = valor;
+                row.dataEmissao = dataEmissao;
+                row.dataPagamento = dataPagamento;
+
+                return true;
+            });
+
+            return {
+                isValid: true,
+                discardedCount,
+                reasons: Array.from(reasons)
+            };
+        }
+
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+
+            // Tenta formato dd/mm/yyyy
+            const match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (!match) return null;
+
+            let day = parseInt(match[1], 10);
+            let month = parseInt(match[2], 10);
+            const year = parseInt(match[3], 10);
+
+            // Auto-detecção: se dia > 12, pode ser mm/dd confundido
+            if (day > 12 && month <= 12) {
+                [day, month] = [month, day];
+            }
+
+            // Validar data
+            if (month < 1 || month > 12 || day < 1 || day > 31) {
+                return null;
+            }
+
+            const date = new Date(year, month - 1, day);
+            if (date.getDate() !== day || date.getMonth() !== month - 1) {
+                return null;
+            }
+
+            return date;
+        }
+
+        // ============ FILTROS ============
+        function populateFilters() {
+            const departamentos = [...new Set(rawData.map(r => r['Departamento']).filter(Boolean))].sort();
+            const obras = [...new Set(rawData.map(r => r['Obra']).filter(Boolean))].sort();
+
+            const deptSelect = document.getElementById('filterDepartamento');
+            const obraSelect = document.getElementById('filterObra');
+
+            departamentos.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                deptSelect.appendChild(option);
+            });
+
+            obras.forEach(obra => {
+                const option = document.createElement('option');
+                option.value = obra;
+                option.textContent = obra;
+                obraSelect.appendChild(option);
+            });
+
+            // Definir datas padrão
+            const hoje = new Date();
+            const trintaDiasAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            document.getElementById('filterDateStart').valueAsDate = trintaDiasAtras;
+            document.getElementById('filterDateEnd').valueAsDate = hoje;
+        }
+
+        function applyFilters() {
+            const dateStart = new Date(document.getElementById('filterDateStart').value);
+            const dateEnd = new Date(document.getElementById('filterDateEnd').value);
+            const departamentos = Array.from(document.getElementById('filterDepartamento').selectedOptions).map(o => o.value);
+            const obras = Array.from(document.getElementById('filterObra').selectedOptions).map(o => o.value);
+
+            filteredData = rawData.filter(row => {
+                const dataPayment = row.dataPagamento;
+
+                if (dataPayment < dateStart || dataPayment > dateEnd) return false;
+                if (departamentos.length > 0 && !departamentos.includes(row['Departamento'])) return false;
+                if (obras.length > 0 && !obras.includes(row['Obra'])) return false;
+
+                return true;
+            });
+
+            updateDashboard();
+        }
+
+        // ============ ATUALIZAR DASHBOARD ============
+        function updateDashboard() {
+            updateKPIs();
+            updateCharts();
+            updateInsights();
+        }
+
+        function updateKPIs() {
+            const totalGasto = filteredData.reduce((sum, r) => sum + r.valorNumerico, 0);
+            const totalPedidos = filteredData.length;
+            const fornecedoresUnicos = new Set(filteredData.map(r => r['Fornecedor'])).size;
+            const ticketMedio = totalPedidos > 0 ? totalGasto / totalPedidos : 0;
+
+            // Gasto do mês (mês mais recente nos dados filtrados)
+            const gastoMes = calcularGastoMesAtual();
+            const mesesAno = calcularMesesAno();
+
+            // Prazo médio
+            const prazoMedio = calcularPrazoMedio();
+
+            // Atualizar elementos
+            document.getElementById('kpiGastoTotal').textContent = formatCurrency(totalGasto);
+            document.getElementById('kpiGastoMes').textContent = formatCurrency(gastoMes);
+            document.getElementById('kpiGastoMesDetail').textContent = mesesAno;
+            document.getElementById('kpiPrazoMedio').textContent = prazoMedio > 0 ? prazoMedio.toFixed(0) + ' dias' : '-- dias';
+            document.getElementById('kpiTotalPedidos').textContent = totalPedidos.toLocaleString('pt-BR');
+            document.getElementById('kpiFornecedores').textContent = fornecedoresUnicos;
+            document.getElementById('kpiTicketMedio').textContent = formatCurrency(ticketMedio);
+        }
+
+        function calcularGastoMesAtual() {
+            if (filteredData.length === 0) return 0;
+
+            // Pegar o mês mais recente
+            const datas = filteredData.map(r => r.dataPagamento);
+            const mesRecente = new Date(Math.max(...datas));
+
+            return filteredData
+                .filter(r => r.dataPagamento.getMonth() === mesRecente.getMonth() && 
+                             r.dataPagamento.getFullYear() === mesRecente.getFullYear())
+                .reduce((sum, r) => sum + r.valorNumerico, 0);
+        }
+
+        function calcularMesesAno() {
+            if (filteredData.length === 0) return 'N/A';
+
+            const datas = filteredData.map(r => r.dataPagamento);
+            const mesRecente = new Date(Math.max(...datas));
+
+            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            return `${meses[mesRecente.getMonth()]}/${mesRecente.getFullYear()}`;
+        }
+
+        function calcularPrazoMedio() {
+            if (filteredData.length === 0) return 0;
+
+            const prazos = filteredData.map(r => {
+                const dias = (r.dataPagamento - r.dataEmissao) / (1000 * 60 * 60 * 24);
+                return dias;
+            });
+
+            return prazos.reduce((a, b) => a + b, 0) / prazos.length;
+        }
+
+        function updateCharts() {
+            updateChartDepartamento();
+            updateChartFornecedor();
+            updateChartTemporal();
+        }
+
+        function updateChartDepartamento() {
+            const dados = {};
+            filteredData.forEach(row => {
+                const dept = row['Departamento'] || 'Sem departamento';
+                dados[dept] = (dados[dept] || 0) + row.valorNumerico;
+            });
+
+            const labels = Object.keys(dados).sort((a, b) => dados[b] - dados[a]);
+            const values = labels.map(l => dados[l]);
+            const colors = generateColors(labels.length);
+
+            if (charts.departamento) charts.departamento.destroy();
+
+            charts.departamento = new Chart(
+                document.getElementById('chartDepartamento'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Gasto (R$)',
+                            data: values,
+                            backgroundColor: colors,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'R$ ' + (value / 1000).toFixed(0) + 'k';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+        }
+
+        function updateChartFornecedor() {
+            const dados = {};
+            filteredData.forEach(row => {
+                const forn = row['Fornecedor'] || 'Sem fornecedor';
+                dados[forn] = (dados[forn] || 0) + row.valorNumerico;
+            });
+
+            const sorted = Object.entries(dados)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 5);
+
+            const labels = sorted.map(([name]) => name);
+            const values = sorted.map(([, val]) => val);
+            const colors = generateColors(5);
+
+            if (charts.fornecedor) charts.fornecedor.destroy();
+
+            charts.fornecedor = new Chart(
+                document.getElementById('chartFornecedor'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Gasto (R$)',
+                            data: values,
+                            backgroundColor: colors,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'R$ ' + (value / 1000).toFixed(0) + 'k';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+        }
+
+        function updateChartTemporal() {
+            // Agrupar por semana
+            const dadosPorData = {};
+
+            filteredData.forEach(row => {
+                const data = row.dataPagamento;
+                const semana = getWeekStart(data);
+                const chave = semana.toLocaleDateString('pt-BR');
+
+                dadosPorData[chave] = (dadosPorData[chave] || 0) + row.valorNumerico;
+            });
+
+            const labels = Object.keys(dadosPorData).sort();
+            const values = labels.map(l => dadosPorData[l]);
+
+            if (charts.temporal) charts.temporal.destroy();
+
+            charts.temporal = new Chart(
+                document.getElementById('chartTemporal'),
+                {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'Gasto Semanal (R$)',
+                            data: values,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 2,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#3b82f6'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'R$ ' + (value / 1000).toFixed(0) + 'k';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+        }
+
+        function updateInsights() {
+            const insights = generateInsights();
+            const container = document.getElementById('insightsContent');
+            container.innerHTML = '';
+
+            insights.forEach(insight => {
+                const div = document.createElement('div');
+                div.className = `insight-item ${insight.type}`;
+                div.innerHTML = `
+                    <div class="insight-label">${insight.label}</div>
+                    <div class="insight-text">${insight.text}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function generateInsights() {
+            if (filteredData.length === 0) {
+                return [{
+                    type: 'warning',
+                    label: 'Dados',
+                    text: 'Nenhum dado disponível para o período selecionado.'
+                }];
+            }
+
+            const insights = [];
+            const totalGasto = filteredData.reduce((sum, r) => sum + r.valorNumerico, 0);
+            const totalPedidos = filteredData.length;
+            const prazoMedio = calcularPrazoMedio();
+            const fornecedores = new Set(filteredData.map(r => r['Fornecedor'])).size;
+
+            // Insight 1: Distribuição
+            const deptMaiorGasto = {};
+            filteredData.forEach(r => {
+                deptMaiorGasto[r['Departamento']] = (deptMaiorGasto[r['Departamento']] || 0) + r.valorNumerico;
+            });
+            const topDept = Object.entries(deptMaiorGasto).sort(([, a], [, b]) => b - a)[0];
+            insights.push({
+                type: 'success',
+                label: 'Departamento',
+                text: `${topDept[0]} é responsável por ${((topDept[1] / totalGasto) * 100).toFixed(1)}% dos gastos (R$ ${formatCurrency(topDept[1]).replace('R$ ', '')}).`
+            });
+
+            // Insight 2: Prazo médio
+            if (prazoMedio > 30) {
+                insights.push({
+                    type: 'warning',
+                    label: 'Prazo de Pagamento',
+                    text: `Prazo médio de ${prazoMedio.toFixed(0)} dias é superior ao ideal. Considere revisar condições com fornecedores.`
+                });
+            } else if (prazoMedio > 0) {
+                insights.push({
+                    type: 'success',
+                    label: 'Eficiência',
+                    text: `Prazo médio de pagamento é de ${prazoMedio.toFixed(0)} dias, dentro do esperado.`
+                });
+            }
+
+            // Insight 3: Fornecedores
+            const fornecedorMaiorGasto = {};
+            filteredData.forEach(r => {
+                fornecedorMaiorGasto[r['Fornecedor']] = (fornecedorMaiorGasto[r['Fornecedor']] || 0) + r.valorNumerico;
+            });
+            const topForn = Object.entries(fornecedorMaiorGasto).sort(([, a], [, b]) => b - a)[0];
+            const percentualForn = ((topForn[1] / totalGasto) * 100).toFixed(1);
+            if (percentualForn > 30) {
+                insights.push({
+                    type: 'danger',
+                    label: 'Concentração',
+                    text: `${percentualForn}% dos gastos concentrados em um único fornecedor (${topForn[0]}). Considere diversificar.`
+                });
+            } else {
+                insights.push({
+                    type: 'success',
+                    label: 'Diversificação',
+                    text: `Trabalha com ${fornecedores} fornecedores, com distribuição equilibrada de gastos.`
+                });
+            }
+
+            // Insight 4: Volume
+            const ticketMedio = totalGasto / totalPedidos;
+            insights.push({
+                type: 'success',
+                label: 'Volume',
+                text: `${totalPedidos} transações com ticket médio de R$ ${formatCurrency(ticketMedio).replace('R$ ', '')} no período.`
+            });
+
+            return insights;
+        }
+
+        // ============ FUNÇÕES AUXILIARES ============
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+
+        function generateColors(count) {
+            const baseColors = [
+                '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+                '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#06b6d4'
+            ];
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                colors.push(baseColors[i % baseColors.length]);
+            }
+            return colors;
+        }
+
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function showStatus(type, message) {
+            const banner = document.getElementById('statusBanner');
+            banner.className = `status-banner ${type}`;
+            banner.textContent = message;
+            if (type === 'success') {
+                setTimeout(() => {
+                    banner.className = 'status-banner';
+                }, 5000);
+            }
+        }
+
+        function updateLastUpdate() {
+            const now = new Date();
+            const time = now.toLocaleTimeString('pt-BR');
+            document.getElementById('lastUpdate').textContent = time;
+        }
+
+        // ============ EXPORTAR PDF ============
+        function exportPDF() {
+            const element = document.querySelector('.container');
+            const opt = {
+                margin: 10,
+                filename: 'relatorio-financeiro-metrocasa.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
